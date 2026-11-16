@@ -1,6 +1,3 @@
-//Programa: Motor DC com encoder
-//Autor: Arduino e Cia
-
 const byte Encoder_C1 = 2;
 const byte Encoder_C2 = 4;
 byte Encoder_C1Last;
@@ -8,18 +5,15 @@ int duracao;
 boolean Direcao;
 
 //Pinos de ligacao ponte H L298N
-#define pino_motor1 6
-#define pino_motor2 7
+#define pino_motor1 5
+#define pino_motor2 6
 
 void setup()
 {
-  Serial.begin(57600);
-  //Pino potenciometro
+  Serial.begin(9600);
   pinMode(A0, INPUT);
-  //Definicao pinos ponte H
   pinMode(pino_motor1, OUTPUT);
   pinMode(pino_motor2, OUTPUT);
-  //Definicao do encoder
   EncoderInit();
 }
 
