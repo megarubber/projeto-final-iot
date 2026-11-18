@@ -1,4 +1,4 @@
-#include <Servo.h>
+#include <ESP32Servo.h>
 
 #define MOTOR_CONVEYOR_A 5
 #define MOTOR_CONVEYOR_B 6
