@@ -1,113 +1,117 @@
 #include <ESP32Servo.h>
 #include <LoRaWan_APP.h>
 
-#define RF_FREQUENCY 915000000
-#define TX_OUTPUT_POWER 5
-#define LORA_BANDWIDTH 0
-#define LORA_SPREADING_FACTOR 7
-#define LORA_CODINGRATE 1
-#define LORA_PREAMBLE_LENGTH 8
-#define LORA_SYMBOL_TIMEOUT 0
-#define LORA_FIX_LENGTH_PAYLOAD_ON false
-#define LORA_IQ_INVERSION_ON false
-#define RX_TIMEOUT_VALUE 1000
-#define BUFFER_SIZE 30
+// LoRa protocol setup
+#define RF_FREQUENCY                915000000
+#define TX_OUTPUT_POWER             5
+#define LORA_BANDWIDTH              0
+#define LORA_SPREADING_FACTOR       7
+#define LORA_CODINGRATE             1
+#define LORA_PREAMBLE_LENGTH        8
+#define LORA_SYMBOL_TIMEOUT         0
+#define LORA_FIX_LENGTH_PAYLOAD_ON  false
+#define LORA_IQ_INVERSION_ON        false
+#define BUFFER_SIZE                 30
 
-char txpacket[BUFFER_SIZE];
-char rxpacket[BUFFER_SIZE];
+char txPacket[BUFFER_SIZE];
+bool loraIdle = true;
+static RadioEvents_t radioEvents;
 
-double txNumber;
+#define MOTOR_CONVEYOR_A  5
+#define MOTOR_CONVEYOR_B  6
+#define MOISTURE_PIN      7   // YL-83 rain/moisture sensor
+#define SERVO_PIN         10
+#define PROXIMITY_SENSOR  9
 
-bool lora_idle=true;
+const int moistureThreshold = 500;
+const int openBinAngle      = 180;
+const int closedBinAngle    = 0;
 
-static RadioEvents_t RadioEvents;
+Servo binServo;
+bool alreadySent = false;
 
-#define MOTOR_CONVEYOR_A 5
-#define MOTOR_CONVEYOR_B 6
-#define YL83_PIN 7 
-#define SERVO_PIN 10
-#define PROXIMITY_SENSOR 9
-
-const int thresholdValue = 500;
-const int openTrashAngle = 180;
-
-Servo mg996r;
-
-void stopMotor() {
+void stopConveyor() {
   digitalWrite(MOTOR_CONVEYOR_A, LOW);
   digitalWrite(MOTOR_CONVEYOR_B, LOW);
 }
 
-void clockwise() {
+void conveyorForward() {
   digitalWrite(MOTOR_CONVEYOR_A, HIGH);
   digitalWrite(MOTOR_CONVEYOR_B, LOW);
 }
 
-void counterclockwise() {
-  digitalWrite(MOTOR_CONVEYOR_A, HIGH);
-  digitalWrite(MOTOR_CONVEYOR_B, LOW);
+void conveyorBackward() {
+  digitalWrite(MOTOR_CONVEYOR_A, LOW);
+  digitalWrite(MOTOR_CONVEYOR_B, HIGH);
 }
 
-void OnTxDone(void) {
-	Serial.println("TX done......");
-	lora_idle = true;
+void onTxDone() {
+  Serial.println("TX done");
+  loraIdle = true;
 }
 
-void OnTxTimeout(void) {
+void onTxTimeout() {
   Radio.Sleep();
-  Serial.println("TX Timeout......");
-  lora_idle = true;
+  Serial.println("TX timeout");
+  loraIdle = true;
+}
+
+void sendLora(const char* msg) {
+  if (!loraIdle) return;
+  snprintf(txPacket, BUFFER_SIZE, "%s", msg);
+  Serial.printf("Sending: %s\r\n", txPacket);
+  Radio.Send((uint8_t *)txPacket, strlen(txPacket));
+  loraIdle = false;
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
+
   pinMode(MOTOR_CONVEYOR_A, OUTPUT);
   pinMode(MOTOR_CONVEYOR_B, OUTPUT);
-  pinMode(YL83_PIN, INPUT);
-  pinMode(PROXIMITY_SENSOR, INPUT); // INPUT_PULLUP for NPN sensors
-  mg996r.attach(SERVO_PIN);
+  pinMode(MOISTURE_PIN, INPUT);
+  pinMode(PROXIMITY_SENSOR, INPUT);
 
-  Mcu.begin(HELTEC_BOARD,SLOW_CLK_TPYE);
+  binServo.attach(SERVO_PIN);
 
-  txNumber = 0;
+  Mcu.begin(HELTEC_BOARD, SLOW_CLK_TPYE);
 
-  RadioEvents.TxDone = OnTxDone;
-  RadioEvents.TxTimeout = OnTxTimeout;
-  
-  Radio.Init(&RadioEvents);
+  radioEvents.TxDone    = onTxDone;
+  radioEvents.TxTimeout = onTxTimeout;
+  Radio.Init(&radioEvents);
   Radio.SetChannel(RF_FREQUENCY);
-  Radio.SetTxConfig(
-    MODEM_LORA, 
-    TX_OUTPUT_POWER,
-    0,
-    LORA_BANDWIDTH,
-    LORA_SPREADING_FACTOR, 
-    LORA_CODINGRATE,
-    LORA_PREAMBLE_LENGTH, 
-    LORA_FIX_LENGTH_PAYLOAD_ON,
-    true, 
-    0, 
-    0, 
-    LORA_IQ_INVERSION_ON, 3000
-  );
+  Radio.SetTxConfig(MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
+                    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
+                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
+                    true, 0, 0, LORA_IQ_INVERSION_ON, 3000);
 }
 
 void loop() {
-  delay(1000);
+  Radio.IrqProcess();
+  delay(100);
+
   int endOfLine = digitalRead(PROXIMITY_SENSOR);
+
   if (endOfLine == HIGH) {
-    clockwise();
+    alreadySent = false;
+    conveyorForward();
     return;
   }
+  stopConveyor();
 
-  stopMotor();
+  if (alreadySent) return;
 
-  int yl83value = analogRead(YL83_PIN);
-  if (yl83value < thresholdValue) {
-    Serial.println("It's Wet");
-    mg996r.write(openTrashAngle);
+  int moistureValue = analogRead(MOISTURE_PIN);
+
+  if (moistureValue < moistureThreshold) {
+    Serial.println("Wet waste");
+    binServo.write(openBinAngle);
+    sendLora("WASTE:WET");
   } else {
-    Serial.println("It's Dry");
-    mg996r.write(-openTrashAngle);
+    Serial.println("Dry waste");
+    binServo.write(closedBinAngle);
+    sendLora("WASTE:DRY");
   }
+
+  alreadySent = true;
 }
