@@ -1,6 +1,6 @@
+#include <DHT.h>
 #include <ESP32Servo.h>
 #include <LoRaWan_APP.h>
-#include <DHT.h>
 
 // LoRa protocol setup
 #define RF_FREQUENCY                915000000
