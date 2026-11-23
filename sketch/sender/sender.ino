@@ -21,6 +21,8 @@ static RadioEvents_t radioEvents;
 
 #define MOTOR_CONVEYOR_A  5
 #define MOTOR_CONVEYOR_B  6
+#define ENCODER_C1 14
+#define ENCODER_C2 16
 #define MOISTURE_PIN      7   // YL-83 rain/moisture sensor
 #define SERVO_PIN         10
 #define PROXIMITY_SENSOR  9
@@ -35,12 +37,35 @@ const int MAX_MOTOR_RPM     = 120; // RPM máximo estimado do seu motor a 100% P
 DHT dht(TEMP_SENSOR_PIN, DHTTYPE);
 Servo binServo;
 
+byte Encoder_C1Last;
+int duracao = 0;
+bool Direcao = false;
 bool alreadySent        = false;
 int conveyorSpeed       = 200; // Velocidade inicial PWM (0 a 255)
 bool isRunning          = false;
 unsigned long lastTick  = 0;
 unsigned long activeMs  = 0;
 unsigned long lastStat  = 0;
+
+void calculapulso() {
+  int Lstate = digitalRead(ENCODER_C1);
+  if ((Encoder_C1Last == LOW) && Lstate == HIGH)
+  {
+    int val = digitalRead(ENCODER_C2);
+    if (val == LOW && Direcao)
+    {
+      Direcao = false; //Reverse
+    }
+    else if (val == HIGH && !Direcao)
+    {
+      Direcao = true;  //Forward
+    }
+  }
+  Encoder_C1Last = Lstate;
+
+  if (!Direcao)  duracao++;
+  else  duracao--;
+}
 
 void stopConveyor() {
   analogWrite(MOTOR_CONVEYOR_A, 0);
@@ -119,6 +144,9 @@ void setup() {
   pinMode(MOTOR_CONVEYOR_B, OUTPUT);
   pinMode(MOISTURE_PIN, INPUT);
   pinMode(PROXIMITY_SENSOR, INPUT);
+
+  pinMode(ENCODER_C2, INPUT);
+  attachInterrupt(0, calculapulso, CHANGE);
 
   dht.begin();
   binServo.attach(SERVO_PIN);
