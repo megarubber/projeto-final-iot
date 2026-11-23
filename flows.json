@@ -1,0 +1,581 @@
+[
+    {
+        "id": "35c834d9fa454f23",
+        "type": "tab",
+        "label": "Fluxo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "a8a9ce2e05bec30e",
+        "type": "mqtt-broker",
+        "name": "mqtt-server",
+        "broker": "127.0.0.1",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "247916b52cd741cf",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-light",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#0094CE",
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#0094CE",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#fafafa",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#1bbfff",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#0094ce",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#ffffff",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 48,
+                "sy": 48,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "c59580369275557e",
+        "type": "ui_tab",
+        "name": "Tab 1",
+        "icon": "dashboard",
+        "order": 1
+    },
+    {
+        "id": "762b1f73fc63a9d4",
+        "type": "ui_group",
+        "name": "Monitoramento em tempo real",
+        "tab": "c59580369275557e",
+        "order": 1,
+        "disp": true,
+        "width": 6,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "54e001eb84850398",
+        "type": "ui_group",
+        "name": "Triagem e Controle",
+        "tab": "c59580369275557e",
+        "order": 2,
+        "disp": true,
+        "width": 6,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "06c4070e231868e1",
+        "type": "postgreSQLConfig",
+        "name": "",
+        "host": "localhost",
+        "hostFieldType": "str",
+        "port": 5432,
+        "portFieldType": "num",
+        "database": "esteira_db",
+        "databaseFieldType": "str",
+        "ssl": "true",
+        "sslFieldType": "bool",
+        "applicationName": "",
+        "applicationNameType": "str",
+        "max": 10,
+        "maxFieldType": "num",
+        "idle": 1000,
+        "idleFieldType": "num",
+        "connectionTimeout": 10000,
+        "connectionTimeoutFieldType": "num",
+        "userFieldType": "cred",
+        "userEnv": "",
+        "passwordFieldType": "cred",
+        "passwordEnv": ""
+    },
+    {
+        "id": "08bbc88dfb845eee",
+        "type": "mqtt in",
+        "z": "35c834d9fa454f23",
+        "name": "",
+        "topic": "waste/bin1/telemetry",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "a8a9ce2e05bec30e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 340,
+        "wires": [
+            [
+                "2052c7507945b0bb",
+                "61bf6ee7fe5e3fc8",
+                "a6ec86201bd306e5",
+                "88426fa673373ae1"
+            ]
+        ]
+    },
+    {
+        "id": "d1ebecfcec25029e",
+        "type": "ui_gauge",
+        "z": "35c834d9fa454f23",
+        "name": "",
+        "group": "762b1f73fc63a9d4",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperatura",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "60",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "20",
+        "seg2": "50",
+        "diff": false,
+        "className": "",
+        "x": 750,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "2052c7507945b0bb",
+        "type": "change",
+        "z": "35c834d9fa454f23",
+        "name": "Change_Temp",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.temp",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 480,
+        "y": 200,
+        "wires": [
+            [
+                "d1ebecfcec25029e"
+            ]
+        ]
+    },
+    {
+        "id": "61bf6ee7fe5e3fc8",
+        "type": "change",
+        "z": "35c834d9fa454f23",
+        "name": "Change_umid",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.umid",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 480,
+        "y": 340,
+        "wires": [
+            [
+                "06f7bdd3cb338b94"
+            ]
+        ]
+    },
+    {
+        "id": "a6ec86201bd306e5",
+        "type": "change",
+        "z": "35c834d9fa454f23",
+        "name": "Change_RPM",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.rpm",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 480,
+        "y": 400,
+        "wires": [
+            [
+                "289dcc9648659320"
+            ]
+        ]
+    },
+    {
+        "id": "06f7bdd3cb338b94",
+        "type": "ui_gauge",
+        "z": "35c834d9fa454f23",
+        "name": "",
+        "group": "762b1f73fc63a9d4",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Umidade",
+        "label": "%",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "100",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "40",
+        "seg2": "80",
+        "diff": false,
+        "className": "",
+        "x": 740,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "289dcc9648659320",
+        "type": "ui_gauge",
+        "z": "35c834d9fa454f23",
+        "name": "",
+        "group": "762b1f73fc63a9d4",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Rotação motor",
+        "label": "RPM",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "150",
+        "colors": [
+            "#00b500",
+            "#e6e600",
+            "#ca3838"
+        ],
+        "seg1": "80",
+        "seg2": "120",
+        "diff": false,
+        "className": "",
+        "x": 760,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "88426fa673373ae1",
+        "type": "function",
+        "z": "35c834d9fa454f23",
+        "name": "Function_Tempo",
+        "func": "let s = msg.payload.active_s || 0;\nlet hrs = Math.floor(s / 3600).toString().padStart(2, '0');\nlet mins = Math.floor((s % 3600) / 60).toString().padStart(2, '0');\nlet secs = (s % 60).toString().padStart(2, '0');\nmsg.payload = `${hrs}:${mins}:${secs}`;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 260,
+        "wires": [
+            [
+                "ec2f0e950cf484cc"
+            ]
+        ]
+    },
+    {
+        "id": "ec2f0e950cf484cc",
+        "type": "ui_text",
+        "z": "35c834d9fa454f23",
+        "group": "762b1f73fc63a9d4",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Tempo Funcionando",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 780,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "edb47128f22410b2",
+        "type": "mqtt in",
+        "z": "35c834d9fa454f23",
+        "name": "",
+        "topic": "waste/bin1/event",
+        "qos": "1",
+        "datatype": "json",
+        "broker": "a8a9ce2e05bec30e",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 500,
+        "wires": [
+            [
+                "ad8f4342dc80470b"
+            ]
+        ]
+    },
+    {
+        "id": "ad8f4342dc80470b",
+        "type": "function",
+        "z": "35c834d9fa454f23",
+        "name": "Quantidade de itens",
+        "func": "// Recupera contagem salva na memória do Node-RED (começa em 0)\nlet org = flow.get(\"count_org\") || 0;\nlet nOrg = flow.get(\"count_n_org\") || 0;\n\nif (msg.payload.type === \"WET\") {\n    org++;\n    flow.set(\"count_org\", org);\n} else if (msg.payload.type === \"DRY\") {\n    nOrg++;\n    flow.set(\"count_n_org\", nOrg);\n}\n\nlet msgOrg = { payload: org };\nlet msgNOrg = { payload: nOrg };\nlet msgDb = {\n    query: \"INSERT INTO triagem_eventos (tipo, rssi, snr) VALUES ($1, $2, $3);\",\n    params: [msg.payload.type, msg.payload.rssi, msg.payload.snr]\n};\n\nreturn [msgOrg, msgNOrg, msgDb];",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 500,
+        "wires": [
+            [
+                "ba1784b2a963d1e1"
+            ],
+            [
+                "b8c2fc2adb3b94b9"
+            ],
+            [
+                "899a8fa7a62d2ce6"
+            ]
+        ]
+    },
+    {
+        "id": "ba1784b2a963d1e1",
+        "type": "ui_text",
+        "z": "35c834d9fa454f23",
+        "group": "54e001eb84850398",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Lixo Orgânico",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 840,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "b8c2fc2adb3b94b9",
+        "type": "ui_text",
+        "z": "35c834d9fa454f23",
+        "group": "54e001eb84850398",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Lixo Não-Orgânico",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#000000",
+        "x": 850,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "899a8fa7a62d2ce6",
+        "type": "postgresql",
+        "z": "35c834d9fa454f23",
+        "name": "",
+        "query": "SELECT * FROM ;",
+        "postgreSQLConfig": "06c4070e231868e1",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 830,
+        "y": 620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6cc9aed9789e0c51",
+        "type": "ui_slider",
+        "z": "35c834d9fa454f23",
+        "name": "",
+        "label": "Velocidade do Motor (PWM)",
+        "tooltip": "",
+        "group": "54e001eb84850398",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "all",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": "255",
+        "step": "5",
+        "className": "",
+        "x": 180,
+        "y": 620,
+        "wires": [
+            [
+                "301cedf7d6da483b"
+            ]
+        ]
+    },
+    {
+        "id": "301cedf7d6da483b",
+        "type": "mqtt out",
+        "z": "35c834d9fa454f23",
+        "name": "",
+        "topic": "waste/bin1/cmd/speed",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "a8a9ce2e05bec30e",
+        "x": 500,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "660e8535e62e154e",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.6",
+            "node-red-contrib-postgresql": "0.16.2"
+        }
+    }
+]
