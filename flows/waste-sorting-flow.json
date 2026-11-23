@@ -1,0 +1,581 @@
+[
+  {
+    "id": "waste_tab",
+    "type": "tab",
+    "label": "Waste Sorting",
+    "disabled": false,
+    "info": "Receives LoRa waste events via MQTT and shows them on the dashboard."
+  },
+  {
+    "id": "mqtt_broker",
+    "type": "mqtt-broker",
+    "name": "Mosquitto",
+    "broker": "192.168.1.10",
+    "port": "1883",
+    "clientid": "nodered-waste",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "autoUnsubscribe": true,
+    "birthTopic": "",
+    "closeTopic": "",
+    "willTopic": "",
+    "credentials": {
+      "user": "esp32",
+      "password": "mqtt-password"
+    }
+  },
+  {
+    "id": "ui_base",
+    "type": "ui-base",
+    "name": "Waste Dashboard",
+    "path": "/dashboard",
+    "includeClientData": true,
+    "acceptsClientConfig": [
+      "ui-notification",
+      "ui-control"
+    ],
+    "showPathInSidebar": false,
+    "showPageTitle": true,
+    "navigationStyle": "default",
+    "titleBarStyle": "default"
+  },
+  {
+    "id": "ui_theme",
+    "type": "ui-theme",
+    "name": "Default Theme",
+    "colors": {
+      "surface": "#ffffff",
+      "primary": "#0094ce",
+      "bgPage": "#eeeeee",
+      "groupBg": "#ffffff",
+      "groupOutline": "#cccccc"
+    },
+    "sizes": {
+      "pagePadding": "12px",
+      "groupGap": "12px",
+      "groupBorderRadius": "4px",
+      "widgetGap": "12px"
+    }
+  },
+  {
+    "id": "ui_page",
+    "type": "ui-page",
+    "name": "Waste Sorting",
+    "ui": "ui_base",
+    "path": "/waste",
+    "icon": "recycle",
+    "layout": "grid",
+    "theme": "ui_theme",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": "0",
+        "cols": "3"
+      },
+      {
+        "name": "Tablet",
+        "px": "576",
+        "cols": "6"
+      },
+      {
+        "name": "Small Desktop",
+        "px": "768",
+        "cols": "9"
+      },
+      {
+        "name": "Desktop",
+        "px": "1024",
+        "cols": "12"
+      }
+    ],
+    "order": 1,
+    "className": "",
+    "visible": "true",
+    "disabled": "false"
+  },
+  {
+    "id": "ui_group_counts",
+    "type": "ui-group",
+    "name": "Counters",
+    "page": "ui_page",
+    "width": "6",
+    "height": "1",
+    "order": 1,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  },
+  {
+    "id": "ui_group_history",
+    "type": "ui-group",
+    "name": "History",
+    "page": "ui_page",
+    "width": "6",
+    "height": "1",
+    "order": 2,
+    "showTitle": true,
+    "className": "",
+    "visible": "true",
+    "disabled": "false",
+    "groupType": "default"
+  },
+  {
+    "id": "n_in_event",
+    "type": "mqtt in",
+    "z": "waste_tab",
+    "name": "Waste events",
+    "topic": "waste/+/event",
+    "qos": "1",
+    "datatype": "json",
+    "broker": "mqtt_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 130,
+    "y": 120,
+    "wires": [
+      [
+        "n_process",
+        "n_dbg"
+      ]
+    ]
+  },
+  {
+    "id": "n_dbg",
+    "type": "debug",
+    "z": "waste_tab",
+    "name": "Raw event",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 360,
+    "y": 60,
+    "wires": []
+  },
+  {
+    "id": "n_process",
+    "type": "function",
+    "z": "waste_tab",
+    "name": "Process event",
+    "func": "const THRESHOLD = 50;   // items before the \"bin full\" alert\nconst ev = msg.payload || {};\nconst type = String(ev.type || '').toUpperCase();\n\nif (type !== 'WET' && type !== 'DRY') {\n    node.warn('Unknown waste type: ' + type);\n    return null;\n}\n\nconst stats = flow.get('stats') || { wet: 0, dry: 0, total: 0 };\nif (type === 'WET') { stats.wet++; } else { stats.dry++; }\nstats.total = stats.wet + stats.dry;\nflow.set('stats', stats);\n\nconst bin = msg.topic.split('/')[1];\nconst when = new Date().toLocaleTimeString('pt-BR');\n\nconst out = [\n    { payload: stats.total },\n    { payload: stats.wet },\n    { payload: stats.dry },\n    { topic: type === 'WET' ? 'Wet' : 'Dry', payload: type === 'WET' ? stats.wet : stats.dry },\n    { payload: bin + ': ' + type + ' at ' + when + ' (RSSI ' + ev.rssi + ' dBm)' },\n    null\n];\n\nif (stats.total % THRESHOLD === 0) {\n    out[5] = { payload: 'Bin reached ' + stats.total + ' items. Check if it needs emptying.' };\n}\nreturn out;",
+    "outputs": 6,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 360,
+    "y": 160,
+    "wires": [
+      [
+        "n_txt_total"
+      ],
+      [
+        "n_txt_wet"
+      ],
+      [
+        "n_txt_dry"
+      ],
+      [
+        "n_chart"
+      ],
+      [
+        "n_txt_last"
+      ],
+      [
+        "n_notify"
+      ]
+    ]
+  },
+  {
+    "id": "n_in_status",
+    "type": "mqtt in",
+    "z": "waste_tab",
+    "name": "Receiver status",
+    "topic": "waste/+/receiver/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "mqtt_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 140,
+    "y": 420,
+    "wires": [
+      [
+        "n_txt_status",
+        "n_sw_offline"
+      ]
+    ]
+  },
+  {
+    "id": "n_sw_offline",
+    "type": "switch",
+    "z": "waste_tab",
+    "name": "offline?",
+    "property": "payload",
+    "propertyType": "msg",
+    "rules": [
+      {
+        "t": "eq",
+        "v": "offline",
+        "vt": "str"
+      }
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 1,
+    "x": 360,
+    "y": 460,
+    "wires": [
+      [
+        "n_chg_offline"
+      ]
+    ]
+  },
+  {
+    "id": "n_chg_offline",
+    "type": "change",
+    "z": "waste_tab",
+    "name": "Alert text",
+    "rules": [
+      {
+        "t": "set",
+        "p": "payload",
+        "pt": "msg",
+        "to": "Receiver is OFFLINE",
+        "tot": "str"
+      }
+    ],
+    "action": "",
+    "property": "",
+    "from": "",
+    "to": "",
+    "reg": false,
+    "x": 540,
+    "y": 460,
+    "wires": [
+      [
+        "n_notify"
+      ]
+    ]
+  },
+  {
+    "id": "n_inj_start",
+    "type": "inject",
+    "z": "waste_tab",
+    "name": "On deploy",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "1",
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 130,
+    "y": 300,
+    "wires": [
+      [
+        "n_fn_load"
+      ]
+    ]
+  },
+  {
+    "id": "n_fn_load",
+    "type": "function",
+    "z": "waste_tab",
+    "name": "Load stats",
+    "func": "const s = flow.get('stats') || { wet: 0, dry: 0, total: 0 };\nreturn [{ payload: s.total }, { payload: s.wet }, { payload: s.dry }];",
+    "outputs": 3,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 340,
+    "y": 300,
+    "wires": [
+      [
+        "n_txt_total"
+      ],
+      [
+        "n_txt_wet"
+      ],
+      [
+        "n_txt_dry"
+      ]
+    ]
+  },
+  {
+    "id": "n_btn_reset",
+    "type": "ui-button",
+    "z": "waste_tab",
+    "group": "ui_group_counts",
+    "name": "",
+    "label": "Reset counters",
+    "order": 6,
+    "width": "3",
+    "height": "1",
+    "emulateClick": false,
+    "tooltip": "",
+    "color": "",
+    "bgcolor": "",
+    "className": "",
+    "icon": "",
+    "iconPosition": "left",
+    "payload": "reset",
+    "payloadType": "str",
+    "topic": "topic",
+    "topicType": "msg",
+    "buttonColor": "",
+    "textColor": "",
+    "iconColor": "",
+    "enableClick": true,
+    "enablePointerdown": false,
+    "pointerdownPayload": "",
+    "pointerdownPayloadType": "str",
+    "enablePointerup": false,
+    "pointerupPayload": "",
+    "pointerupPayloadType": "str",
+    "x": 130,
+    "y": 360,
+    "wires": [
+      [
+        "n_fn_reset"
+      ]
+    ]
+  },
+  {
+    "id": "n_fn_reset",
+    "type": "function",
+    "z": "waste_tab",
+    "name": "Reset stats",
+    "func": "flow.set('stats', { wet: 0, dry: 0, total: 0 });\nreturn [{ payload: 0 }, { payload: 0 }, { payload: 0 }, { payload: [] }, { payload: 'No events yet' }];",
+    "outputs": 5,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 340,
+    "y": 360,
+    "wires": [
+      [
+        "n_txt_total"
+      ],
+      [
+        "n_txt_wet"
+      ],
+      [
+        "n_txt_dry"
+      ],
+      [
+        "n_chart"
+      ],
+      [
+        "n_txt_last"
+      ]
+    ]
+  },
+  {
+    "id": "n_txt_total",
+    "type": "ui-text",
+    "group": "ui_group_counts",
+    "name": "",
+    "label": "Total items",
+    "order": 1,
+    "width": "3",
+    "height": "1",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#717171",
+    "className": "",
+    "x": 700,
+    "y": 100,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "n_txt_wet",
+    "type": "ui-text",
+    "group": "ui_group_counts",
+    "name": "",
+    "label": "Wet waste",
+    "order": 2,
+    "width": "3",
+    "height": "1",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#717171",
+    "className": "",
+    "x": 700,
+    "y": 150,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "n_txt_dry",
+    "type": "ui-text",
+    "group": "ui_group_counts",
+    "name": "",
+    "label": "Dry waste",
+    "order": 3,
+    "width": "3",
+    "height": "1",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#717171",
+    "className": "",
+    "x": 700,
+    "y": 200,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "n_txt_last",
+    "type": "ui-text",
+    "group": "ui_group_counts",
+    "name": "",
+    "label": "Last event",
+    "order": 4,
+    "width": "6",
+    "height": "1",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#717171",
+    "className": "",
+    "x": 700,
+    "y": 250,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "n_txt_status",
+    "type": "ui-text",
+    "group": "ui_group_counts",
+    "name": "",
+    "label": "Receiver",
+    "order": 5,
+    "width": "3",
+    "height": "1",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "style": false,
+    "font": "",
+    "fontSize": 16,
+    "color": "#717171",
+    "className": "",
+    "x": 700,
+    "y": 420,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "n_chart",
+    "type": "ui-chart",
+    "z": "waste_tab",
+    "group": "ui_group_history",
+    "name": "Items over time",
+    "label": "Items over time",
+    "order": 1,
+    "chartType": "line",
+    "category": "topic",
+    "categoryType": "msg",
+    "xAxisLabel": "",
+    "xAxisProperty": "",
+    "xAxisPropertyType": "property",
+    "xAxisType": "time",
+    "xAxisFormat": "",
+    "xAxisFormatType": "auto",
+    "xmin": "",
+    "xmax": "",
+    "yAxisLabel": "Items",
+    "yAxisProperty": "payload",
+    "yAxisPropertyType": "msg",
+    "ymin": "0",
+    "ymax": "",
+    "action": "append",
+    "stackSeries": false,
+    "pointShape": "circle",
+    "pointRadius": 4,
+    "showLegend": true,
+    "removeOlder": 1,
+    "removeOlderUnit": "86400",
+    "removeOlderPoints": "",
+    "colors": [
+      "#0095ff",
+      "#ff7f0e",
+      "#2ca02c",
+      "#d62728"
+    ],
+    "textColor": [
+      "#666666"
+    ],
+    "textColorDefault": true,
+    "gridColor": [
+      "#e5e5e5"
+    ],
+    "gridColorDefault": true,
+    "width": "6",
+    "height": "5",
+    "className": "",
+    "interpolation": "linear",
+    "x": 700,
+    "y": 320,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "n_notify",
+    "type": "ui-notification",
+    "z": "waste_tab",
+    "ui": "ui_base",
+    "position": "top right",
+    "colorDefault": true,
+    "color": "#000000",
+    "displayTime": "8",
+    "showCountdown": true,
+    "outputs": 0,
+    "allowDismiss": true,
+    "dismissText": "Close",
+    "raw": false,
+    "className": "",
+    "name": "Alerts",
+    "x": 700,
+    "y": 500,
+    "wires": []
+  }
+]
